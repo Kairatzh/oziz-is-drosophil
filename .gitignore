@@ -9,12 +9,10 @@ checkpoints/*.pt
 !pretrained/.gitkeep
 !checkpoints/.gitkeep
 
-# Environments & Virtual environments
+# Virtual environments (only root virtualenv directories)
+/.venv/
+/venv/
 .env
-.venv
-env/
-venv/
-ENV/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints
