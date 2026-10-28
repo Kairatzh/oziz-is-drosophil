@@ -1,0 +1,120 @@
+# Swarm Collective Intelligence — Configuration
+# All tunable hyperparameters in one place.
+
+# ─── Environment ─────────────────────────────────────────────────────────────
+env:
+  grid_size: 32
+  # Role counts (total N = n_scouts + n_carriers + n_analyzers)
+  n_scouts: 2
+  n_carriers: 2
+  n_analyzers: 1
+  # Per-episode domain randomization ranges (overrides fixed counts if dr=true)
+  domain_randomization: true
+  min_agents: 3
+  max_agents: 6
+  vision_radius: 3          # cells each drone sees
+  vision_radius_range: [2, 5]
+  comm_range: 5             # cells for map-fusion communication
+  comm_range_range: [3, 8]
+  obstacle_density: 0.15    # fraction of grid cells that are walls
+  obstacle_density_range: [0.05, 0.25]
+  fault_prob: 0.002         # probability a drone breaks each step
+  fault_prob_range: [0.0, 0.005]
+  max_steps: 300
+
+# ─── Communication (TarMAC) ───────────────────────────────────────────────────
+communication:
+  dim_message: 16      # size of message vector each agent broadcasts
+  dim_key: 8           # size of signature/query for attention
+  comm_cost: 0.01      # penalty coefficient: r -= comm_cost * ||m_i||_2
+  # Map-fusion (implicit, inherited from Multi-Agent env) stays ON
+  # TarMAC (explicit, learned) is added ON TOP
+  use_map_fusion: true
+  use_tarmac: true
+
+# ─── Backbone (frozen GlobalMapCNN from Multi-Agent-Systems-Project) ──────────
+backbone:
+  # Set pretrained_path in notebook at runtime (downloaded from HuggingFace)
+  pretrained_path: "pretrained/mas_backbone.pt"
+  freeze_encoder: true        # freeze ConvNeXt + Transformer blocks
+  fine_tune_lr_multiplier: 0.1  # top layers get lr * this value
+  feat_global_dim: 1024       # output of GlobalMapCNN
+  feat_local_dim: 384         # output of LocalCNN
+  feat_ctx_dim: 5
+  # Derived: total backbone output before role embedding
+  # feat_combined = 1024 + 384 + 5 = 1413 (+ LayerNorm)
+
+# ─── Agent ───────────────────────────────────────────────────────────────────
+agent:
+  role_embedding_dim: 64     # learnable per-role embedding
+  hidden_dim: 512            # after backbone+role concat projection
+  n_roles: 3                 # Scout=0, Carrier=1, Analyzer=2
+
+# ─── QMIX ────────────────────────────────────────────────────────────────────
+qmix:
+  mixing_embed_dim: 32       # hidden size inside mixer
+  hypernet_embed_dim: 64     # hyper-network hidden size
+  # Global state for mixer = all agents' global obs concatenated
+  # state_dim = 6144 * max_agents (padded) — computed dynamically
+
+# ─── Training ────────────────────────────────────────────────────────────────
+training:
+  algorithm: "qmix"          # qmix | vdn (fallback)
+  total_episodes: 30000
+  lr: 3.0e-4
+  weight_decay: 1.0e-6
+  grad_clip: 1.0
+  batch_size: 32
+  buffer_size: 200000
+  gamma: 0.97
+  n_step: 3                  # n-step returns
+  target_update_freq: 500    # steps between target network copies
+  # Exploration
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay: 0.9995
+  # Logging
+  eval_interval: 500         # episodes between evaluations
+  save_interval: 2000
+  log_comm_stats: true       # track message norms, attention entropy
+
+# ─── Curriculum ───────────────────────────────────────────────────────────────
+curriculum:
+  enabled: true
+  stages:
+    - name: "scout_only"
+      n_scouts: 3
+      n_carriers: 0
+      n_analyzers: 0
+      fault_prob: 0.0
+      task: "search"
+      advance_threshold: 0.70   # success_rate to move to next stage
+    - name: "scout_carrier"
+      n_scouts: 2
+      n_carriers: 1
+      n_analyzers: 0
+      fault_prob: 0.0
+      task: "search_transport"
+      advance_threshold: 0.65
+    - name: "scout_analyzer"
+      n_scouts: 2
+      n_carriers: 0
+      n_analyzers: 1
+      fault_prob: 0.0
+      task: "search_analyze"
+      advance_threshold: 0.60
+    - name: "full_swarm"
+      n_scouts: 2
+      n_carriers: 1
+      n_analyzers: 1
+      fault_prob: 0.0
+      task: "full_pipeline"
+      advance_threshold: 0.55
+    - name: "full_swarm_faults"
+      n_scouts: 2
+      n_carriers: 1
+      n_analyzers: 1
+      fault_prob: 0.003
+      task: "full_pipeline"
+      advance_threshold: 0.0   # final stage, no advancement
+  window_size: 200  # episodes to average for advance check

@@ -1,0 +1,11 @@
+axis,region,success_%,reward,coverage_%,SPL
+n_agents,in-dist,92.3,142.7,52.5,0.635
+n_agents,OOD,98.9,117.4,55.7,0.806
+vision,in-dist,93.9,136.0,55.2,0.692
+vision,OOD,96.0,152.4,70.2,0.792
+comm,in-dist,97.5,149.5,54.6,0.715
+comm,OOD,97.5,149.0,55.0,0.713
+density,in-dist,94.6,137.5,52.2,0.702
+density,OOD,88.4,97.7,35.5,0.738
+max_steps,in-dist,97.6,149.2,53.4,0.715
+max_steps,OOD,83.1,126.3,50.5,0.649

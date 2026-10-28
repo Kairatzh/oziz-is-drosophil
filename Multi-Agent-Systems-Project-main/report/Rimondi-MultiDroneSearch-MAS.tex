@@ -1,0 +1,148 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Multi-Drone Cooperative Search with Random Faults — final report
+% Single column, 11pt. Compile with pdflatex + bibtex (or latexmk -pdf).
+% ---------------------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,top=2.2cm,bottom=2.2cm,left=2.45cm,right=2.45cm]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}  % \FloatBarrier keeps figures within their subsection
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{csquotes}
+\usepackage[numbers,square,sort&compress]{natbib}
+
+\usepackage[hidelinks,colorlinks=true,linkcolor=black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+% Document metadata: without these the PDF ships with an empty /Title and
+% /Author, and viewers fall back to displaying the file name.
+\hypersetup{
+  pdftitle={Multi-Drone Cooperative Search with Random Faults},
+  pdfauthor={Simone Rimondi},
+  pdfsubject={Multi-Agent Systems project, MSc Artificial Intelligence, University of Bologna, A.Y. 2025/2026},
+  pdfkeywords={multi-agent systems, deep reinforcement learning, Dueling Double DQN,
+               parameter sharing, fault tolerance, partial observability, domain randomization}
+}
+
+% Figures live in report/figures/ (exported plots, diagrams, screenshots).
+\graphicspath{{figures/}}
+
+\captionsetup{font=footnotesize,labelfont=bf}
+
+\setlength{\parskip}{0.08em}
+
+% Convenience macros for recurring notation.
+\newcommand{\gridsize}{32}
+\newcommand{\rvis}{r_{\mathrm{vis}}}
+\newcommand{\rcomm}{r_{\mathrm{comm}}}
+\newcommand{\pfault}{p_{\mathrm{fault}}}
+\newcommand{\nagents}{N}
+
+\title{\textbf{Multi-Drone Cooperative Search\\ with Random Faults}\\[0.4em]
+\large A fault-tolerant cooperative multi-agent system trained with\\ deep reinforcement learning, analysed through the multi-agent paradigm}
+
+\author{Simone Rimondi\\[0.3em]
+\small Student ID 0001189110\\[0.2em]
+\small \href{mailto:simone.rimondi5@studio.unibo.it}{simone.rimondi5@studio.unibo.it}\\[0.3em]
+\small Multi-Agent Systems\\
+\small Master's Degree in Artificial Intelligence, University of Bologna\\
+\small Academic Year 2025/2026}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+We study cooperative target search by a team of drones on a partially
+observable grid, under limited communication, a fixed time budget and~--- the
+defining extension of this work~--- the possibility that any drone
+permanently breaks at any moment, with no central authority to announce the
+loss. A single Dueling Double DQN with parameter sharing drives every drone
+from strictly per-drone inputs, batched into one forward pass only for speed;
+per-episode domain randomization and a compact
+context vector turn that one policy into a generalist across team size,
+sensing, communication range, obstacle density, and fault rate. Fault
+knowledge is fully decentralized: a wreck emits only a passive distress
+beacon, and crash information spreads through the same range-limited map fusion
+as any other observation, so each drone acts on a sound-but-possibly-stale
+belief about how many teammates remain. We read the resulting system through
+the multi-agent paradigm, namely coordination without protocols, environment-%
+mediated (stigmergic) dispersion, an artefact and autonomy analysis, and an
+epistemic account of fault handling, and we evaluate it empirically. The
+single policy generalizes across every randomization axis, including
+\emph{beyond} its trained ranges on team size, vision and communication; most
+importantly, it degrades \emph{gracefully} under faults: across the
+entire trained fault range success drops by under seven points while the team
+loses, on average, close to half a drone, and even at more than triple the
+trained fault rate it still completes nearly three missions in four, with no
+cliff. We
+close with an ethical and regulatory analysis (GDPR, the EU AI Act and its
+military carve-out, and the autonomous-weapons scenario) that takes seriously
+the dual-use nature of a capability whose fault tolerance would make an attack
+swarm as resilient as a rescue one.
+\end{abstract}
+
+% Companion material. The tabular puts the three addresses in one column: the
+% GitLab path alone is 79 characters, so set side by side they overrun the text
+% block. Note that \url must be handed a literal URL, since it reads its
+% argument verbatim and cannot be wrapped in a macro or a conditional.
+\vspace{1.2em}
+\begin{center}
+\footnotesize
+% Body font rather than typewriter, at footnotesize: the GitLab path is 79
+% characters, and \url's default \ttfamily at \small overruns the text block by
+% 65pt. Both settings are scoped to this group, so the bibliography's URLs keep
+% their usual style.
+\urlstyle{same}
+\begin{tabular}{@{}r@{\hspace{1.1em}}l@{}}
+\textbf{GitLab repository}  & \url{https://dvcs.apice.unibo.it/pika-lab/courses/ai-ethics/projects/rimondi2526-mas} \\[0.2em]
+\textbf{GitHub repository}  & \url{https://github.com/simoswish02/Multi-Agent-Systems-Project} \\[0.2em]
+\textbf{Trained weights}    & \url{https://huggingface.co/simoswish/MAS_MultiDroneExploration} \\[0.2em]
+\textbf{Video walkthrough}  & \url{https://youtu.be/8dnRG6ZneP8}
+\end{tabular}
+\end{center}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\input{sections/01_introduction}
+\input{sections/02_background}
+\input{sections/03_problem}
+\input{sections/04_architecture}
+\input{sections/05_training}
+\input{sections/06_mas}
+\input{sections/07_experiments}
+\input{sections/08_ethics}
+\input{sections/09_conclusions}
+
+\appendix
+\input{sections/10_appendix}
+
+% The bibliography is set one size down and on a tightened inter-entry skip:
+% 62 entries at body size and natbib's default \bibsep run to five pages, and
+% the course caps the report at 50.
+{\small
+\setlength{\bibsep}{0.15ex plus 0.1ex}
+\bibliographystyle{plainnat}
+\bibliography{references}
+}
+
+\end{document}

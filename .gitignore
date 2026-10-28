@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Checkpoints and models (downloaded dynamically in Colab from HuggingFace)
+pretrained/*.pt
+checkpoints/*.pt
+!pretrained/.gitkeep
+!checkpoints/.gitkeep
+
+# Environments & Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Logs, runs, training telemetry
+runs/
+wandb/
+*.log
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary results
+*.mp4
+*.gif

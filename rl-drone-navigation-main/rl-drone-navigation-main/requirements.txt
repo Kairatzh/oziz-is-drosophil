@@ -1,0 +1,7 @@
+# Note: torch is CPU-only in this project by design (see CLAUDE.md).
+# Install with: pip install torch --index-url https://download.pytorch.org/whl/cpu
+numpy
+matplotlib
+pillow
+pytest
+torch

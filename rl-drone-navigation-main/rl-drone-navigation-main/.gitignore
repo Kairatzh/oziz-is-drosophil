@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Claude Code internal state
+.claude/
+
+# Generated results
+results/*.png
+results/*.gif
+
+# Model checkpoints (keep only the final trained model)
+model_checkpoints/*.pt
+!model_checkpoints/final_model.pt
